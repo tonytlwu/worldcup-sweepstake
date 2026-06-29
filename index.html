@@ -548,10 +548,16 @@ async function load(){
   try{
     const r=await fetch(LIVE_URL,{cache:"no-store"});
     if(!r.ok) throw new Error(r.status);
-    let feedTs=null;
-    const lm=r.headers.get("last-modified");           // may be hidden cross-origin; used only if exposed
-    if(lm){ const t=Date.parse(lm); if(!isNaN(t)) feedTs=t; }
     const data=trim(await r.json());
+    let feedTs=null;
+    const lm=r.headers.get("last-modified");
+    if(lm){ const t=Date.parse(lm); if(!isNaN(t)) feedTs=t; }
+    if(!feedTs){
+      // Last-Modified header is not exposed cross-origin by GitHub's CDN;
+      // fall back to the latest match date that has a result in the feed.
+      const dates=data.filter(m=>m.ft&&m.date).map(m=>Date.parse(m.date+"T23:59:59Z")).filter(Boolean);
+      if(dates.length) feedTs=Math.max(...dates);
+    }
     const payload={matches:data,ts:Date.now(),feedTs};
     try{ localStorage.setItem(CACHE_KEY,JSON.stringify(payload)); }catch(e){}
     draw(data); setSource("live",payload.ts,feedTs);
