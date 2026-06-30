@@ -242,6 +242,17 @@ const SHORT  = {"Round of 32":"R32","Round of 16":"R16","Quarter-final":"QF","Se
 const isKO = m => ["Round of 32","Round of 16","Quarter-final","Semi-final","Final","Match for third place"].includes(m.round);
 const isGroup = m => !!m.group;
 
+/* ---------- winner resolution (handles ET and penalties) ---------- */
+function koWinner(m){
+  if(!m.ft) return null;
+  // penalties (score = shootout goals only, not cumulative)
+  if(m.p)  return m.p[0]>m.p[1]?m.team1:(m.p[1]>m.p[0]?m.team2:null);
+  // extra time (score is cumulative)
+  if(m.et) return m.et[0]>m.et[1]?m.team1:(m.et[1]>m.et[0]?m.team2:null);
+  return m.ft[0]>m.ft[1]?m.team1:(m.ft[1]>m.ft[0]?m.team2:null);
+}
+function koLoserOf(m){ const w=koWinner(m); if(!w) return null; return w===m.team1?m.team2:m.team1; }
+
 /* ---------- compute state from matches ---------- */
 function analyse(matches){
   const groupTeams=new Set(), r32=new Set();
@@ -258,7 +269,7 @@ function analyse(matches){
     const r = m.round==="Match for third place" ? "Final" : m.round;
     [m.team1,m.team2].forEach(t=>{ if(r32.has(t) && depth(r)>ROUNDS.indexOf(furthest[t]||"Group")) furthest[t]=r; });
     if(m.ft){
-      const [a,b]=m.ft, w=a>b?m.team1:(b>a?m.team2:null), l=a>b?m.team2:(b>a?m.team1:null);
+      const w=koWinner(m), l=koLoserOf(m);
       if(l) koLoser.add(l);
       if(m.round==="Final" && w){ champion=w; runnerUp=l; furthest[w]="Champion"; }
       if(m.round==="Match for third place" && w){ third=w; }
@@ -357,8 +368,10 @@ function renderFixtures(matches,S){
       const civil=o1&&o2&&o1===o2, rival=o1&&o2&&o1!==o2;
       const cls=civil?"civilwar":(rival?"clash":"");
       let mid;
-      if(m.ft){ const [a,b]=m.ft;
-        mid=`<div class="sc"><span class="${a>b?'win':''}">${a}</span>\u2013<span class="${b>a?'win':''}">${b}</span></div>`;
+      if(m.ft){ const [a,b]=m.ft, w=koWinner(m);
+        const w1=w===m.team1, w2=w===m.team2;
+        const pens=m.p?`<div class="ko">${m.p[0]}\u2013${m.p[1]} pens</div>`:(m.et&&m.et[0]===m.et[1]?`<div class="ko">aet</div>`:"");
+        mid=`<div class="sc"><span class="${w1?'win':''}">${a}</span>\u2013<span class="${w2?'win':''}">${b}</span></div>${pens}`;
       } else { mid=`<div class="ko">${ko?fmtLocalTime(ko):"TBD"}</div>`; }
       html+=`<div class="fx ${cls}">
         <div class="side"><div class="tm"><span class="fl">${flagOf[m.team1]||"\u26aa"}</span><span class="nm">${m.team1}</span></div>${ownBadge(m.team1)}</div>
@@ -392,8 +405,7 @@ function renderBracket(matches){
     if(!tok(t)) return {nm:t||"TBD", real:!!t, resolved:t||null};
     const n=+t.slice(1), f=byNum[n];
     if(f && f.ft && !tok(f.team1) && !tok(f.team2)){
-      const [a,b]=f.ft;
-      const winner=a>b?f.team1:(b>a?f.team2:null), loser=a>b?f.team2:(b>a?f.team1:null);
+      const winner=koWinner(f), loser=koLoserOf(f);
       const resolved=t[0]==="W"?winner:loser;
       if(resolved) return {nm:resolved, real:true, resolved};
     }
@@ -408,7 +420,7 @@ function renderBracket(matches){
     if(!ms.length){ html+=`<div class="note">TBD</div>`; }
     ms.forEach(m=>{
       const o1=owner[m.team1],o2=owner[m.team2], civil=!tok(m.team1)&&o1&&o1===o2;
-      const w = m.ft ? (m.ft[0]>m.ft[1]?1:(m.ft[1]>m.ft[0]?2:0)) : 0;
+      const kw=koWinner(m); const w=kw?(kw===m.team1?1:2):0;
       const cell=(team,score,isW)=>{
         const L=label(team);
         const rt=L.resolved||team;
@@ -456,7 +468,7 @@ function simulate(matches,R,N,seed){
       const res=t=> !isTok(t)? t : (t[0]==="W"?win[+t.slice(1)]:lose[+t.slice(1)]);
       const a=res(m.team1), b=res(m.team2); if(!a||!b) continue;
       let w,l;
-      if(m.ft && !isTok(m.team1) && !isTok(m.team2) && m.ft[0]!==m.ft[1]){ w=m.ft[0]>m.ft[1]?a:b; l=(w===a)?b:a; }
+      if(m.ft && !isTok(m.team1) && !isTok(m.team2)){ const kw=koWinner(m); if(kw){ w=kw===m.team1?a:b; l=(w===a)?b:a; } }
       else { w=rng()<eloExp(R[a],R[b])?a:b; l=(w===a)?b:a; }
       win[n]=w; lose[n]=l;
     }
@@ -536,7 +548,7 @@ setInterval(()=>{ if(LAST.fetchTs) renderStatus(); }, 30000);
 
 function draw(matches){ const S=analyse(matches); renderStandings(S); renderFixtures(matches,S); renderBracket(matches); renderPredict(matches); }
 
-function trim(raw){ return raw.matches.map(m=>{const t={round:m.round,date:m.date,time:m.time,team1:m.team1,team2:m.team2,group:m.group}; if(m.num!=null)t.num=m.num; if(m.score&&m.score.ft)t.ft=m.score.ft; return t;}); }
+function trim(raw){ return raw.matches.map(m=>{const t={round:m.round,date:m.date,time:m.time,team1:m.team1,team2:m.team2,group:m.group}; if(m.num!=null)t.num=m.num; if(m.score){if(m.score.ft)t.ft=m.score.ft; if(m.score.et)t.et=m.score.et; if(m.score.p)t.p=m.score.p;} return t;}); }
 
 async function load(){
   // start from cache or seed so UI is never empty
