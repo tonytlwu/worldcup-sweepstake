@@ -298,7 +298,7 @@ function renderStandings(S){
     .sort((a,b)=> b.peak.depth-a.peak.depth || b.alive-a.alive || a.p.name.localeCompare(b.p.name));
 
   const podium = `<div class="podium">
-    <div class="slot gold"><div class="lab">🏆 Champion</div><div class="val">${S.champion?ownerLine(S.champion):"To be decided"}</div></div>
+    <div class="slot gold"><div class="lab">🏆 Champion</div><div class="val">${S.champion?ownerLine(S.champion):"—"}</div></div>
     <div class="slot"><div class="lab">🥈 Runner-up</div><div class="val">${S.runnerUp?ownerLine(S.runnerUp):"—"}</div></div>
     <div class="slot"><div class="lab">🥉 Third</div><div class="val">${S.third?ownerLine(S.third):"—"}</div></div>
   </div>`;
@@ -370,8 +370,8 @@ function renderFixtures(matches,S){
       let mid;
       if(m.ft){ const [a,b]=m.ft, w=koWinner(m);
         const w1=w===m.team1, w2=w===m.team2;
-        const pens=m.p?`<div class="ko">${m.p[0]}\u2013${m.p[1]} pens</div>`:(m.et&&m.et[0]===m.et[1]?`<div class="ko">aet</div>`:"");
-        mid=`<div class="sc"><span class="${w1?'win':''}">${a}</span>\u2013<span class="${w2?'win':''}">${b}</span></div>${pens}`;
+        const sub=m.p?`<div class="ko">(${m.p[0]}\u2013${m.p[1]})</div>`:(m.et&&m.et[0]===m.et[1]?`<div class="ko">aet</div>`:"");
+        mid=`<div class="sc"><span class="${w1?'win':''}">${a}</span>\u2013<span class="${w2?'win':''}">${b}</span></div>${sub}`;
       } else { mid=`<div class="ko">${ko?fmtLocalTime(ko):"TBD"}</div>`; }
       html+=`<div class="fx ${cls}">
         <div class="side"><div class="tm"><span class="fl">${flagOf[m.team1]||"\u26aa"}</span><span class="nm">${m.team1}</span></div>${ownBadge(m.team1)}</div>
@@ -428,10 +428,12 @@ function renderBracket(matches){
         const right = m.ft ? score : (L.real ? (owner[rt]||"") : "");
         return `<div class="row ${isW?'w':''}"><div class="l">${fl}<span class="nm ${L.real?'':'tbd'}">${L.nm}</span></div><span class="${m.ft?'':'ob'}">${right}</span></div>`;
       };
+      const penLabel=m.p?`<div class="vs" style="font-size:.5rem">(${m.p[0]}–${m.p[1]})</div>`:"";
       html+=`<div class="tie ${civil?'civilwar':''}">
         ${cell(m.team1, m.ft?m.ft[0]:"", w===1)}
         <div class="vs">${civil?o1+"'s civil war":"v"}</div>
         ${cell(m.team2, m.ft?m.ft[1]:"", w===2)}
+        ${penLabel}
       </div>`;
     });
     html+=`</div>`;
