@@ -312,7 +312,7 @@ function renderStandings(S){
     }).join("")+`</div>`;
     const chips=`<div class="chips">`+p.teams.map(([nm,tier,fl])=>{
       const f=feedName(nm), st=S.status(f);
-      if(st==="missing") return `<span class="chip ghost"><span class="fl">${fl}</span><span class="nm">${nm}</span><span class="badge-x">n/a</span></span>`;
+      if(st==="missing") return `<span class="chip out"><span class="fl">${fl}</span><span class="nm">${nm}</span><span class="badge-x">n/a</span></span>`;
       if(st==="alive")  return `<span class="chip alive"><span class="tdot" style="background:var(--${tier.toLowerCase()})"></span><span class="fl">${fl}</span><span class="nm">${nm}</span></span>`;
       return `<span class="chip out"><span class="fl">${fl}</span><span class="nm">${nm}</span></span>`;
     }).join("")+`</div>`;
