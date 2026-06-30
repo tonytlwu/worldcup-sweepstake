@@ -358,7 +358,7 @@ function renderFixtures(matches,S){
   if(!keys.length){ document.getElementById("fixtures").innerHTML=`<div class="note mt-2">No knockout fixtures loaded yet.</div>`; return; }
   const today=localToday();
   const ordered=[...keys.filter(k=>k===today), ...keys.filter(k=>k>today).sort(), ...keys.filter(k=>k<today).sort().reverse()];
-  let html=`<div class="note mb-2">Kick-off times shown in your local timezone — upcoming first, completed games at the bottom.</div>`;
+  let html=`<div class="note mb-2">Kick-off times in UK time (BST/GMT) — upcoming first, completed games at the bottom.</div>`;
   ordered.forEach(key=>{
     const isToday=key===today, isPast=key<today, grp=byKey[key];
     const rounds=[...new Set(grp.map(it=>it.m.round))];
@@ -395,10 +395,11 @@ function parseKickoff(date,time){
   const d=new Date(`${date}T${hh}:${mm}:00${sign}${oabs}:${omin}`);
   return isNaN(d.getTime())?null:d;
 }
-function localDateKey(d){ const y=d.getFullYear(),mo=String(d.getMonth()+1).padStart(2,"0"),da=String(d.getDate()).padStart(2,"0"); return `${y}-${mo}-${da}`; }
+const TZ="Europe/London";
+function localDateKey(d){ return d.toLocaleDateString("en-CA",{timeZone:TZ}); }
 function localToday(){ return localDateKey(new Date()); }
-function fmtLocalTime(d){ return d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}); }
-function fmtLocalDay(key){ const d=new Date(key+"T12:00:00"); return d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}); }
+function fmtLocalTime(d){ return d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:TZ}); }
+function fmtLocalDay(key){ const d=new Date(key+"T12:00:00Z"); return d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:TZ}); }
 
 /* ---------- render: bracket ---------- */
 function renderBracket(matches){
