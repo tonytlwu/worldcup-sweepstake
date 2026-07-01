@@ -123,7 +123,7 @@ body{
 /* fixtures */
 .daygrp{margin-top:1rem}
 .daygrp.past{opacity:.6}
-.dayhd{font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:.82rem;color:var(--muted);margin:.2rem 0 .45rem;display:flex;align-items:center;gap:.5rem}
+.dayhd{font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:.82rem;color:var(--muted);margin:0;padding:.35rem 0 .4rem;display:flex;align-items:center;gap:.5rem;position:sticky;top:var(--appbar-h,0px);background:var(--bg);z-index:9;border-bottom:1px solid var(--line)}
 .dayhd.today{color:var(--gold-text)}
 .dayhd .rd{font-size:.6rem;color:var(--dead);letter-spacing:.12em}
 .fx{display:flex;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.5rem .65rem;margin-bottom:.4rem;gap:.5rem}
@@ -359,8 +359,9 @@ function renderFixtures(matches,S){
   const keys=Object.keys(byKey).sort();
   if(!keys.length){ document.getElementById("fixtures").innerHTML=`<div class="note mt-2">No knockout fixtures loaded yet.</div>`; return; }
   const today=localToday();
-  const ordered=[...keys.filter(k=>k===today), ...keys.filter(k=>k>today).sort(), ...keys.filter(k=>k<today).sort().reverse()];
-  let html=`<div class="note mb-2">Kick-off times in your local timezone — upcoming first, completed games at the bottom.</div>`;
+  const ordered=[...keys].sort();
+  let html=`<div class="note mb-2">Kick-off times in your local timezone.</div>`;
+  let nextMarked=false;
   ordered.forEach(key=>{
     const isToday=key===today, isPast=key<today, grp=byKey[key];
     const rounds=[...new Set(grp.map(it=>it.m.round))];
@@ -373,13 +374,14 @@ function renderFixtures(matches,S){
       const o1=owner[t1],o2=owner[t2];
       const civil=o1&&o2&&o1===o2, rival=o1&&o2&&o1!==o2;
       const cls=civil?"civilwar":(rival?"clash":"");
+      const isNext=!nextMarked&&!m.ft&&key>=today; if(isNext) nextMarked=true;
       let mid;
       if(m.ft){ const [a,b]=m.ft, w=koWinner(m);
         const w1=w===m.team1, w2=w===m.team2;
         const sub=m.p?`<div class="ko">(${m.p[0]}\u2013${m.p[1]})</div>`:(m.et&&m.et[0]===m.et[1]?`<div class="ko">aet</div>`:"");
         mid=`<div class="sc"><span class="${w1?'win':''}">${a}</span>\u2013<span class="${w2?'win':''}">${b}</span></div>${sub}`;
       } else { mid=`<div class="ko">${ko?fmtLocalTime(ko):"TBD"}</div>`; }
-      html+=`<div class="fx ${cls}">
+      html+=`<div class="fx ${cls}"${isNext?' id="fx-next"':''}>
         <div class="side"><div class="tm"><span class="fl">${flagOf[t1]||"\u26aa"}</span><span class="nm">${t1}</span></div>${ownBadge(t1)}</div>
         <div class="mid">${mid}${civil?`<div class="cw-tag">${o1}'s pick</div>`:""}</div>
         <div class="side r"><div class="tm"><span class="fl">${flagOf[t2]||"\u26aa"}</span><span class="nm">${t2}</span></div>${ownBadge(t2)}</div>
@@ -585,14 +587,29 @@ async function load(){
 }
 
 /* ---------- tabs ---------- */
+function updateAppbarH(){ document.documentElement.style.setProperty("--appbar-h",document.querySelector(".appbar").offsetHeight+"px"); }
+window.addEventListener("resize",updateAppbarH);
+function scrollToNextFixture(){
+  requestAnimationFrame(()=>{
+    const el=document.getElementById("fx-next");
+    if(!el) return;
+    const appbarH=document.querySelector(".appbar").offsetHeight;
+    const daygrp=el.closest(".daygrp");
+    const dayhd=daygrp&&daygrp.querySelector(".dayhd");
+    const offset=appbarH+(dayhd?dayhd.offsetHeight:0)+4;
+    window.scrollTo({top:Math.max(0,el.getBoundingClientRect().top+window.scrollY-offset),behavior:"smooth"});
+  });
+}
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
   ["standings","fixtures","bracket","predict"].forEach(id=>document.getElementById(id).hidden = (id!==b.dataset.tab));
+  if(b.dataset.tab==="fixtures") scrollToNextFixture();
 }));
 document.getElementById("refresh").addEventListener("click",load);
 function applyTheme(){ const dark = !window.matchMedia || window.matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.setAttribute("data-bs-theme", dark?"dark":"light"); }
 applyTheme();
 if(window.matchMedia){ try{ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyTheme); }catch(e){} }
+updateAppbarH();
 load();
 </script>
 </body>
