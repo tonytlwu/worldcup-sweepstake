@@ -345,7 +345,9 @@ function ownBadge(team){
 function renderFixtures(matches,S){
   const order=["Round of 32","Round of 16","Quarter-final","Semi-final","Match for third place","Final"];
   const tok=t=>/^[WL]\d+$/.test(t||"");
-  const ko=matches.filter(m=>isKO(m)&&!(tok(m.team1)&&tok(m.team2)));
+  const byNum={}; matches.forEach(m=>{ if(m.num!=null) byNum[m.num]=m; });
+  const resolve=t=>{ if(!tok(t)) return t; const n=+t.slice(1),f=byNum[n]; if(!f||!f.ft||tok(f.team1)||tok(f.team2)) return t; const r=t[0]==="W"?koWinner(f):koLoserOf(f); return r||t; };
+  const ko=matches.filter(m=>isKO(m)&&!(tok(resolve(m.team1))&&tok(resolve(m.team2))));
   // resolve each kickoff to an absolute instant, then to the viewer's local day
   const items=ko.map(m=>{ const d=parseKickoff(m.date,m.time); return {m,ko:d,key:d?localDateKey(d):(m.date||"zzzz")}; });
   items.sort((a,b)=>{
@@ -367,7 +369,8 @@ function renderFixtures(matches,S){
     const tag = isToday?'\u00b7 Today':(isPast?'\u00b7 Completed':'');
     html+=`<div class="daygrp ${isPast?'past':''}"><div class="dayhd ${isToday?'today':''}">${dayLabel} ${tag}<span class="rd">${rd}</span></div>`;
     grp.forEach(({m,ko})=>{
-      const o1=owner[m.team1],o2=owner[m.team2];
+      const t1=resolve(m.team1),t2=resolve(m.team2);
+      const o1=owner[t1],o2=owner[t2];
       const civil=o1&&o2&&o1===o2, rival=o1&&o2&&o1!==o2;
       const cls=civil?"civilwar":(rival?"clash":"");
       let mid;
@@ -377,9 +380,9 @@ function renderFixtures(matches,S){
         mid=`<div class="sc"><span class="${w1?'win':''}">${a}</span>\u2013<span class="${w2?'win':''}">${b}</span></div>${sub}`;
       } else { mid=`<div class="ko">${ko?fmtLocalTime(ko):"TBD"}</div>`; }
       html+=`<div class="fx ${cls}">
-        <div class="side"><div class="tm"><span class="fl">${flagOf[m.team1]||"\u26aa"}</span><span class="nm">${m.team1}</span></div>${ownBadge(m.team1)}</div>
+        <div class="side"><div class="tm"><span class="fl">${flagOf[t1]||"\u26aa"}</span><span class="nm">${t1}</span></div>${ownBadge(t1)}</div>
         <div class="mid">${mid}${civil?`<div class="cw-tag">${o1}'s pick</div>`:""}</div>
-        <div class="side r"><div class="tm"><span class="fl">${flagOf[m.team2]||"\u26aa"}</span><span class="nm">${m.team2}</span></div>${ownBadge(m.team2)}</div>
+        <div class="side r"><div class="tm"><span class="fl">${flagOf[t2]||"\u26aa"}</span><span class="nm">${t2}</span></div>${ownBadge(t2)}</div>
       </div>`;
     });
     html+=`</div>`;
