@@ -2,7 +2,7 @@
 <html lang="en-GB">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>World Cup '26 · The Sweepstake</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +40,10 @@ body{
   color:var(--text);
   font-family:'Inter',system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;
-  padding-bottom:48px;
+  padding-bottom:24px;
+}
+@media (max-width:991.98px){
+  body{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
 }
 .dsp{font-family:'Saira Condensed',sans-serif;letter-spacing:.02em;}
 
@@ -68,14 +71,35 @@ body{
 .statusbar.stale .state{color:var(--t6)}
 .btn-refresh{--bs-btn-color:var(--muted);--bs-btn-border-color:var(--line);--bs-btn-hover-color:var(--text);--bs-btn-hover-border-color:var(--teal-edge);--bs-btn-hover-bg:transparent;font-size:.72rem;padding:.2rem .55rem}
 
-/* tabs */
+/* tabs (desktop) */
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:0 -.75rem}
 .tabs button{
   flex:1;background:none;border:none;color:var(--muted);
   font-family:'Saira Condensed',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.04em;
   font-size:.76rem;padding:.65rem .1rem;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:5px;
 }
+.tabs button svg{width:13px;height:13px;stroke-width:2;flex:none}
 .tabs button.on{color:var(--text);border-bottom-color:var(--gold)}
+@media (max-width:991.98px){.tabs{display:none}}
+
+/* bottom nav (mobile/tablet) */
+.bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:30;
+  background:var(--appbar1);backdrop-filter:blur(8px);
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (max-width:991.98px){.bottom-nav{display:flex}}
+.bnav-btn{
+  flex:1;background:none;border:none;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:.55rem .25rem .45rem;cursor:pointer;
+  font-family:'Inter',system-ui,sans-serif;font-size:.6rem;letter-spacing:.02em;transition:color .15s;
+}
+.bnav-btn svg{width:21px;height:21px;stroke-width:1.75}
+.bnav-btn.on{color:var(--gold-text)}
 
 /* podium banner */
 .podium{display:flex;gap:.5rem;margin:.9rem 0 .2rem}
@@ -189,10 +213,10 @@ a.src{color:var(--muted)}
       <button id="refresh" class="btn btn-outline-secondary btn-refresh dsp">Refresh</button>
     </div>
     <div class="tabs">
-      <button data-tab="standings" class="on">Standings</button>
-      <button data-tab="fixtures">Fixtures</button>
-      <button data-tab="bracket">Bracket</button>
-      <button data-tab="predict">Predict</button>
+      <button data-tab="standings" class="on"><i data-lucide="trophy"></i><span>Standings</span></button>
+      <button data-tab="fixtures"><i data-lucide="calendar-days"></i><span>Fixtures</span></button>
+      <button data-tab="bracket"><i data-lucide="git-branch"></i><span>Bracket</span></button>
+      <button data-tab="predict"><i data-lucide="sparkles"></i><span>Predict</span></button>
     </div>
     <div id="statusbar" class="statusbar s-offline"><span class="dot"></span><span id="stStatus">checking…</span></div>
   </div>
@@ -210,6 +234,13 @@ a.src{color:var(--muted)}
   </div>
 </div>
 
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bnav-btn on" data-tab="standings"><i data-lucide="trophy"></i><span>Standings</span></button>
+  <button class="bnav-btn" data-tab="fixtures"><i data-lucide="calendar-days"></i><span>Fixtures</span></button>
+  <button class="bnav-btn" data-tab="bracket"><i data-lucide="git-branch"></i><span>Bracket</span></button>
+  <button class="bnav-btn" data-tab="predict"><i data-lucide="sparkles"></i><span>Predict</span></button>
+</nav>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
 /* ---------- baked-in data ---------- */
 const SEED_MATCHES = [{"round":"Matchday 1","date":"2026-06-11","time":"13:00 UTC-6","team1":"Mexico","team2":"South Africa","group":"Group A","ft":[2,0]},{"round":"Matchday 1","date":"2026-06-11","time":"20:00 UTC-6","team1":"South Korea","team2":"Czech Republic","group":"Group A","ft":[2,1]},{"round":"Matchday 8","date":"2026-06-18","time":"12:00 UTC-4","team1":"Czech Republic","team2":"South Africa","group":"Group A","ft":[1,1]},{"round":"Matchday 8","date":"2026-06-18","time":"19:00 UTC-6","team1":"Mexico","team2":"South Korea","group":"Group A","ft":[1,0]},{"round":"Matchday 14","date":"2026-06-24","time":"19:00 UTC-6","team1":"Czech Republic","team2":"Mexico","group":"Group A","ft":[0,3]},{"round":"Matchday 14","date":"2026-06-24","time":"19:00 UTC-6","team1":"South Africa","team2":"South Korea","group":"Group A","ft":[1,0]},{"round":"Matchday 2","date":"2026-06-12","time":"15:00 UTC-4","team1":"Canada","team2":"Bosnia & Herzegovina","group":"Group B","ft":[1,1]},{"round":"Matchday 3","date":"2026-06-13","time":"12:00 UTC-7","team1":"Qatar","team2":"Switzerland","group":"Group B","ft":[1,1]},{"round":"Matchday 8","date":"2026-06-18","time":"12:00 UTC-7","team1":"Switzerland","team2":"Bosnia & Herzegovina","group":"Group B","ft":[4,1]},{"round":"Matchday 8","date":"2026-06-18","time":"15:00 UTC-7","team1":"Canada","team2":"Qatar","group":"Group B","ft":[6,0]},{"round":"Matchday 14","date":"2026-06-24","time":"12:00 UTC-7","team1":"Switzerland","team2":"Canada","group":"Group B","ft":[2,1]},{"round":"Matchday 14","date":"2026-06-24","time":"12:00 UTC-7","team1":"Bosnia & Herzegovina","team2":"Qatar","group":"Group B","ft":[3,1]},{"round":"Matchday 3","date":"2026-06-13","time":"18:00 UTC-4","team1":"Brazil","team2":"Morocco","group":"Group C","ft":[1,1]},{"round":"Matchday 3","date":"2026-06-13","time":"21:00 UTC-4","team1":"Haiti","team2":"Scotland","group":"Group C","ft":[0,1]},{"round":"Matchday 9","date":"2026-06-19","time":"18:00 UTC-4","team1":"Scotland","team2":"Morocco","group":"Group C","ft":[0,1]},{"round":"Matchday 9","date":"2026-06-19","time":"20:30 UTC-4","team1":"Brazil","team2":"Haiti","group":"Group C","ft":[3,0]},{"round":"Matchday 14","date":"2026-06-24","time":"18:00 UTC-4","team1":"Scotland","team2":"Brazil","group":"Group C","ft":[0,3]},{"round":"Matchday 14","date":"2026-06-24","time":"18:00 UTC-4","team1":"Morocco","team2":"Haiti","group":"Group C","ft":[4,2]},{"round":"Matchday 2","date":"2026-06-12","time":"18:00 UTC-7","team1":"USA","team2":"Paraguay","group":"Group D","ft":[4,1]},{"round":"Matchday 3","date":"2026-06-13","time":"21:00 UTC-7","team1":"Australia","team2":"Turkey","group":"Group D","ft":[2,0]},{"round":"Matchday 9","date":"2026-06-19","time":"12:00 UTC-7","team1":"USA","team2":"Australia","group":"Group D","ft":[2,0]},{"round":"Matchday 9","date":"2026-06-19","time":"20:00 UTC-7","team1":"Turkey","team2":"Paraguay","group":"Group D","ft":[0,1]},{"round":"Matchday 15","date":"2026-06-25","time":"19:00 UTC-7","team1":"Turkey","team2":"USA","group":"Group D","ft":[3,2]},{"round":"Matchday 15","date":"2026-06-25","time":"19:00 UTC-7","team1":"Paraguay","team2":"Australia","group":"Group D","ft":[0,0]},{"round":"Matchday 4","date":"2026-06-14","time":"12:00 UTC-5","team1":"Germany","team2":"Curaçao","group":"Group E","ft":[7,1]},{"round":"Matchday 4","date":"2026-06-14","time":"19:00 UTC-4","team1":"Ivory Coast","team2":"Ecuador","group":"Group E","ft":[1,0]},{"round":"Matchday 10","date":"2026-06-20","time":"16:00 UTC-4","team1":"Germany","team2":"Ivory Coast","group":"Group E","ft":[2,1]},{"round":"Matchday 10","date":"2026-06-20","time":"19:00 UTC-5","team1":"Ecuador","team2":"Curaçao","group":"Group E","ft":[0,0]},{"round":"Matchday 15","date":"2026-06-25","time":"16:00 UTC-4","team1":"Curaçao","team2":"Ivory Coast","group":"Group E","ft":[0,2]},{"round":"Matchday 15","date":"2026-06-25","time":"16:00 UTC-4","team1":"Ecuador","team2":"Germany","group":"Group E","ft":[2,1]},{"round":"Matchday 4","date":"2026-06-14","time":"15:00 UTC-5","team1":"Netherlands","team2":"Japan","group":"Group F","ft":[2,2]},{"round":"Matchday 4","date":"2026-06-14","time":"20:00 UTC-6","team1":"Sweden","team2":"Tunisia","group":"Group F","ft":[5,1]},{"round":"Matchday 10","date":"2026-06-20","time":"12:00 UTC-5","team1":"Netherlands","team2":"Sweden","group":"Group F","ft":[5,1]},{"round":"Matchday 10","date":"2026-06-20","time":"22:00 UTC-6","team1":"Tunisia","team2":"Japan","group":"Group F","ft":[0,4]},{"round":"Matchday 15","date":"2026-06-25","time":"18:00 UTC-5","team1":"Japan","team2":"Sweden","group":"Group F","ft":[1,1]},{"round":"Matchday 15","date":"2026-06-25","time":"18:00 UTC-5","team1":"Tunisia","team2":"Netherlands","group":"Group F","ft":[1,3]},{"round":"Matchday 5","date":"2026-06-15","time":"12:00 UTC-7","team1":"Belgium","team2":"Egypt","group":"Group G","ft":[1,1]},{"round":"Matchday 5","date":"2026-06-15","time":"18:00 UTC-7","team1":"Iran","team2":"New Zealand","group":"Group G","ft":[2,2]},{"round":"Matchday 11","date":"2026-06-21","time":"12:00 UTC-7","team1":"Belgium","team2":"Iran","group":"Group G","ft":[0,0]},{"round":"Matchday 11","date":"2026-06-21","time":"18:00 UTC-7","team1":"New Zealand","team2":"Egypt","group":"Group G","ft":[1,3]},{"round":"Matchday 16","date":"2026-06-26","time":"20:00 UTC-7","team1":"Egypt","team2":"Iran","group":"Group G","ft":[1,1]},{"round":"Matchday 16","date":"2026-06-26","time":"20:00 UTC-7","team1":"New Zealand","team2":"Belgium","group":"Group G","ft":[1,5]},{"round":"Matchday 5","date":"2026-06-15","time":"12:00 UTC-4","team1":"Spain","team2":"Cape Verde","group":"Group H","ft":[0,0]},{"round":"Matchday 5","date":"2026-06-15","time":"18:00 UTC-4","team1":"Saudi Arabia","team2":"Uruguay","group":"Group H","ft":[1,1]},{"round":"Matchday 11","date":"2026-06-21","time":"12:00 UTC-4","team1":"Spain","team2":"Saudi Arabia","group":"Group H","ft":[4,0]},{"round":"Matchday 11","date":"2026-06-21","time":"18:00 UTC-4","team1":"Uruguay","team2":"Cape Verde","group":"Group H","ft":[2,2]},{"round":"Matchday 16","date":"2026-06-26","time":"19:00 UTC-5","team1":"Cape Verde","team2":"Saudi Arabia","group":"Group H","ft":[0,0]},{"round":"Matchday 16","date":"2026-06-26","time":"18:00 UTC-6","team1":"Uruguay","team2":"Spain","group":"Group H","ft":[0,1]},{"round":"Matchday 6","date":"2026-06-16","time":"15:00 UTC-4","team1":"France","team2":"Senegal","group":"Group I","ft":[3,1]},{"round":"Matchday 6","date":"2026-06-16","time":"18:00 UTC-4","team1":"Iraq","team2":"Norway","group":"Group I","ft":[1,4]},{"round":"Matchday 12","date":"2026-06-22","time":"17:00 UTC-4","team1":"France","team2":"Iraq","group":"Group I","ft":[3,0]},{"round":"Matchday 12","date":"2026-06-22","time":"20:00 UTC-4","team1":"Norway","team2":"Senegal","group":"Group I","ft":[3,2]},{"round":"Matchday 16","date":"2026-06-26","time":"15:00 UTC-4","team1":"Norway","team2":"France","group":"Group I","ft":[1,4]},{"round":"Matchday 16","date":"2026-06-26","time":"15:00 UTC-4","team1":"Senegal","team2":"Iraq","group":"Group I","ft":[5,0]},{"round":"Matchday 6","date":"2026-06-16","time":"20:00 UTC-5","team1":"Argentina","team2":"Algeria","group":"Group J","ft":[3,0]},{"round":"Matchday 6","date":"2026-06-16","time":"21:00 UTC-7","team1":"Austria","team2":"Jordan","group":"Group J","ft":[3,1]},{"round":"Matchday 12","date":"2026-06-22","time":"12:00 UTC-5","team1":"Argentina","team2":"Austria","group":"Group J","ft":[2,0]},{"round":"Matchday 12","date":"2026-06-22","time":"20:00 UTC-7","team1":"Jordan","team2":"Algeria","group":"Group J","ft":[1,2]},{"round":"Matchday 17","date":"2026-06-27","time":"21:00 UTC-5","team1":"Algeria","team2":"Austria","group":"Group J","ft":[3,3]},{"round":"Matchday 17","date":"2026-06-27","time":"21:00 UTC-5","team1":"Jordan","team2":"Argentina","group":"Group J","ft":[1,3]},{"round":"Matchday 7","date":"2026-06-17","time":"12:00 UTC-5","team1":"Portugal","team2":"DR Congo","group":"Group K","ft":[1,1]},{"round":"Matchday 7","date":"2026-06-17","time":"20:00 UTC-6","team1":"Uzbekistan","team2":"Colombia","group":"Group K","ft":[1,3]},{"round":"Matchday 13","date":"2026-06-23","time":"12:00 UTC-5","team1":"Portugal","team2":"Uzbekistan","group":"Group K","ft":[5,0]},{"round":"Matchday 13","date":"2026-06-23","time":"20:00 UTC-6","team1":"Colombia","team2":"DR Congo","group":"Group K","ft":[1,0]},{"round":"Matchday 17","date":"2026-06-27","time":"19:30 UTC-4","team1":"Colombia","team2":"Portugal","group":"Group K","ft":[0,0]},{"round":"Matchday 17","date":"2026-06-27","time":"19:30 UTC-4","team1":"DR Congo","team2":"Uzbekistan","group":"Group K","ft":[3,1]},{"round":"Matchday 7","date":"2026-06-17","time":"15:00 UTC-5","team1":"England","team2":"Croatia","group":"Group L","ft":[4,2]},{"round":"Matchday 7","date":"2026-06-17","time":"19:00 UTC-4","team1":"Ghana","team2":"Panama","group":"Group L","ft":[1,0]},{"round":"Matchday 13","date":"2026-06-23","time":"16:00 UTC-4","team1":"England","team2":"Ghana","group":"Group L","ft":[0,0]},{"round":"Matchday 13","date":"2026-06-23","time":"19:00 UTC-4","team1":"Panama","team2":"Croatia","group":"Group L","ft":[0,1]},{"round":"Matchday 17","date":"2026-06-27","time":"17:00 UTC-4","team1":"Panama","team2":"England","group":"Group L","ft":[0,2]},{"round":"Matchday 17","date":"2026-06-27","time":"17:00 UTC-4","team1":"Croatia","team2":"Ghana","group":"Group L","ft":[2,1]},{"round":"Round of 32","date":"2026-06-28","time":"12:00 UTC-7","team1":"South Africa","team2":"Canada","group":null,"num":73,"ft":[0,1]},{"round":"Round of 32","date":"2026-06-29","time":"16:30 UTC-4","team1":"Germany","team2":"Paraguay","group":null,"num":74},{"round":"Round of 32","date":"2026-06-29","time":"19:00 UTC-6","team1":"Netherlands","team2":"Morocco","group":null,"num":75},{"round":"Round of 32","date":"2026-06-29","time":"12:00 UTC-5","team1":"Brazil","team2":"Japan","group":null,"num":76},{"round":"Round of 32","date":"2026-06-30","time":"17:00 UTC-4","team1":"France","team2":"Sweden","group":null,"num":77},{"round":"Round of 32","date":"2026-06-30","time":"12:00 UTC-5","team1":"Ivory Coast","team2":"Norway","group":null,"num":78},{"round":"Round of 32","date":"2026-06-30","time":"19:00 UTC-6","team1":"Mexico","team2":"Ecuador","group":null,"num":79},{"round":"Round of 32","date":"2026-07-01","time":"12:00 UTC-4","team1":"England","team2":"DR Congo","group":null,"num":80},{"round":"Round of 32","date":"2026-07-01","time":"17:00 UTC-7","team1":"USA","team2":"Bosnia & Herzegovina","group":null,"num":81},{"round":"Round of 32","date":"2026-07-01","time":"13:00 UTC-7","team1":"Belgium","team2":"Senegal","group":null,"num":82},{"round":"Round of 32","date":"2026-07-02","time":"19:00 UTC-4","team1":"Portugal","team2":"Croatia","group":null,"num":83},{"round":"Round of 32","date":"2026-07-02","time":"12:00 UTC-7","team1":"Spain","team2":"Austria","group":null,"num":84},{"round":"Round of 32","date":"2026-07-02","time":"20:00 UTC-7","team1":"Switzerland","team2":"Algeria","group":null,"num":85},{"round":"Round of 32","date":"2026-07-03","time":"18:00 UTC-4","team1":"Argentina","team2":"Cape Verde","group":null,"num":86},{"round":"Round of 32","date":"2026-07-03","time":"20:30 UTC-5","team1":"Colombia","team2":"Ghana","group":null,"num":87},{"round":"Round of 32","date":"2026-07-03","time":"13:00 UTC-5","team1":"Australia","team2":"Egypt","group":null,"num":88},{"round":"Round of 16","date":"2026-07-04","time":"17:00 UTC-4","team1":"W74","team2":"W77","group":null,"num":89},{"round":"Round of 16","date":"2026-07-04","time":"12:00 UTC-5","team1":"W73","team2":"W75","group":null,"num":90},{"round":"Round of 16","date":"2026-07-05","time":"16:00 UTC-4","team1":"W76","team2":"W78","group":null,"num":91},{"round":"Round of 16","date":"2026-07-05","time":"18:00 UTC-6","team1":"W79","team2":"W80","group":null,"num":92},{"round":"Round of 16","date":"2026-07-06","time":"14:00 UTC-5","team1":"W83","team2":"W84","group":null,"num":93},{"round":"Round of 16","date":"2026-07-06","time":"17:00 UTC-7","team1":"W81","team2":"W82","group":null,"num":94},{"round":"Round of 16","date":"2026-07-07","time":"12:00 UTC-4","team1":"W86","team2":"W88","group":null,"num":95},{"round":"Round of 16","date":"2026-07-07","time":"13:00 UTC-7","team1":"W85","team2":"W87","group":null,"num":96},{"round":"Quarter-final","date":"2026-07-09","time":"16:00 UTC-4","team1":"W89","team2":"W90","group":null,"num":97},{"round":"Quarter-final","date":"2026-07-10","time":"12:00 UTC-7","team1":"W93","team2":"W94","group":null,"num":98},{"round":"Quarter-final","date":"2026-07-11","time":"17:00 UTC-4","team1":"W91","team2":"W92","group":null,"num":99},{"round":"Quarter-final","date":"2026-07-11","time":"20:00 UTC-5","team1":"W95","team2":"W96","group":null,"num":100},{"round":"Semi-final","date":"2026-07-14","time":"14:00 UTC-5","team1":"W97","team2":"W98","group":null,"num":101},{"round":"Semi-final","date":"2026-07-15","time":"15:00 UTC-4","team1":"W99","team2":"W100","group":null,"num":102},{"round":"Match for third place","date":"2026-07-18","time":"17:00 UTC-4","team1":"L101","team2":"L102","group":null,"num":103},{"round":"Final","date":"2026-07-19","time":"15:00 UTC-4","team1":"W101","team2":"W102","group":null,"num":104}];
@@ -600,16 +631,18 @@ function scrollToNextFixture(){
     window.scrollTo({top:Math.max(0,el.getBoundingClientRect().top+window.scrollY-offset),behavior:"smooth"});
   });
 }
-document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
-  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["standings","fixtures","bracket","predict"].forEach(id=>document.getElementById(id).hidden = (id!==b.dataset.tab));
-  if(b.dataset.tab==="fixtures") scrollToNextFixture();
-}));
+function setActiveTab(tab){
+  document.querySelectorAll(".tabs button,.bnav-btn").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  ["standings","fixtures","bracket","predict"].forEach(id=>document.getElementById(id).hidden=(id!==tab));
+  if(tab==="fixtures") scrollToNextFixture();
+}
+document.querySelectorAll(".tabs button,.bnav-btn").forEach(b=>b.addEventListener("click",()=>setActiveTab(b.dataset.tab)));
 document.getElementById("refresh").addEventListener("click",load);
 function applyTheme(){ const dark = !window.matchMedia || window.matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.setAttribute("data-bs-theme", dark?"dark":"light"); }
 applyTheme();
 if(window.matchMedia){ try{ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyTheme); }catch(e){} }
 updateAppbarH();
+lucide.createIcons();
 load();
 </script>
 </body>
