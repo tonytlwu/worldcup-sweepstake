@@ -407,9 +407,9 @@ function renderFixtures(matches,S){
       const cls=civil?"civilwar":(rival?"clash":"");
       const isNext=!nextMarked&&!m.ft&&key>=today; if(isNext) nextMarked=true;
       let mid;
-      if(m.ft){ const [a,b]=m.ft, w=koWinner(m);
+      if(m.ft){ const etWin=m.et&&m.et[0]!==m.et[1], [a,b]=etWin?m.et:m.ft, w=koWinner(m);
         const w1=w===m.team1, w2=w===m.team2;
-        const sub=m.p?`<div class="ko">(${m.p[0]}\u2013${m.p[1]})</div>`:(m.et&&m.et[0]===m.et[1]?`<div class="ko">aet</div>`:"");
+        const sub=m.p?`<div class="ko">(${m.p[0]}\u2013${m.p[1]})</div>`:(m.et?`<div class="ko">aet</div>`:"");
         mid=`<div class="sc"><span class="${w1?'win':''}">${a}</span>\u2013<span class="${w2?'win':''}">${b}</span></div>${sub}`;
       } else { mid=`<div class="ko">${ko?fmtLocalTime(ko):"TBD"}</div>`; }
       html+=`<div class="fx ${cls}"${isNext?' id="fx-next"':''}>
@@ -460,6 +460,7 @@ function renderBracket(matches){
     ms.forEach(m=>{
       const o1=owner[m.team1],o2=owner[m.team2], civil=!tok(m.team1)&&o1&&o1===o2;
       const kw=koWinner(m); const w=kw?(kw===m.team1?1:2):0;
+      const etWin=m.et&&m.et[0]!==m.et[1], disp=etWin?m.et:m.ft;
       const cell=(team,score,isW)=>{
         const L=label(team);
         const rt=L.resolved||team;
@@ -467,11 +468,11 @@ function renderBracket(matches){
         const right = m.ft ? score : (L.real ? (owner[rt]||"") : "");
         return `<div class="row ${isW?'w':''}"><div class="l">${fl}<span class="nm ${L.real?'':'tbd'}">${L.nm}</span></div><span class="${m.ft?'':'ob'}">${right}</span></div>`;
       };
-      const penLabel=m.p?`<div class="vs" style="font-size:.5rem">(${m.p[0]}–${m.p[1]})</div>`:"";
+      const penLabel=m.p?`<div class="vs" style="font-size:.5rem">(${m.p[0]}–${m.p[1]})</div>`:(m.et?`<div class="vs" style="font-size:.5rem">aet</div>`:"");
       html+=`<div class="tie ${civil?'civilwar':''}">
-        ${cell(m.team1, m.ft?m.ft[0]:"", w===1)}
+        ${cell(m.team1, m.ft?disp[0]:"", w===1)}
         <div class="vs">${civil?o1+"'s civil war":"v"}</div>
-        ${cell(m.team2, m.ft?m.ft[1]:"", w===2)}
+        ${cell(m.team2, m.ft?disp[1]:"", w===2)}
         ${penLabel}
       </div>`;
     });
